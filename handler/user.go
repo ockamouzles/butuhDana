@@ -21,7 +21,7 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
-		errors := helper.FormatValdationError(err)
+		errors := helper.FormatValidationError(err)
 		errorMessage := gin.H{
 			"errors": errors,
 		}
@@ -45,6 +45,40 @@ func (h *userHandler) RegisterUser(c *gin.Context) {
 	response := helper.APIResponse("Sukses didaftarkan", http.StatusOK, "Success", formatter)
 
 	c.JSON(http.StatusAccepted, response)
+}
+
+func (h *userHandler) Login(c *gin.Context) {
+	var input user.LoginInput
+
+	err := c.ShouldBind(&input)
+
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{
+			"errors": errors,
+		}
+
+		response := helper.APIResponse("Erroors!!!", http.StatusUnprocessableEntity, "Error", errorMessage)
+
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	loggedInUser, err := h.userService.Login(input)
+
+	if err != nil {
+		errorMessage := gin.H{"errors": err.Error()}
+		response := helper.APIResponse("U mistake, u stupid idiot", http.StatusUnprocessableEntity, "Error", errorMessage)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := user.FormatUser(loggedInUser, "blablasldsjdasjdda")
+
+	response := helper.APIResponse("Sucessfully logged", http.StatusOK, "success", formatter)
+
+	c.JSON(http.StatusOK, response)
 }
 
 // package handler
